@@ -1,14 +1,24 @@
 import { setHashPassword } from '@/helpers/utils';
 import { User } from '@/modules/users/entities/user.entity';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isUUID } from 'class-validator';
 import dayjs from 'dayjs';
-import { Model } from 'mongoose';
+import ms from 'ms';
 import { MongoRepository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateUserInput } from './dto/create-user.input';
-import { FilterDto, RegisterUserInput, RoleEnum, UpdateUserInput } from './dto/user.dto';
+import {
+  FilterDto,
+  RegisterUserInput,
+  RegisterUserResponse,
+  RoleEnum,
+  UpdateUserInput,
+} from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +33,9 @@ export class UsersService {
     return false;
   };
 
-  async registerUser(registerUserInput: RegisterUserInput) {
+  async registerUser(
+    registerUserInput: RegisterUserInput,
+  ): Promise<RegisterUserResponse> {
     const { email, password } = registerUserInput;
 
     //check email
@@ -38,20 +50,21 @@ export class UsersService {
     const hashPassword = await setHashPassword(password);
     const codeId = uuidv4();
     const id = uuidv4();
-    const dataUser = this.userModel.create({
+    const data = {
       ...registerUserInput,
       id,
       email,
       password: hashPassword,
       isActive: false,
       codeId: codeId,
-      codeExpired: dayjs().add(5, 'minutes'),
-    })
-    await this.userModel.save(dataUser)
+      codeExpired: ms(dayjs().add(5, 'minutes').toISOString()),
+    };
+    const dataObject = this.userModel.create(data);
+    await this.userModel.save(dataObject);
 
-    delete dataUser.password
+    delete data.password;
     //trả ra phản hồi
-    return dataUser
+    return data;
   }
 
   create(createUserInput: CreateUserInput) {

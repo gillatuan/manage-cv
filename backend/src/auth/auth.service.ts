@@ -1,20 +1,6 @@
-import { setHashPassword } from '@/helpers/utils';
-import {
-  RegisterUserInput,
-  RegisterUserResponse,
-  RoleEnum,
-} from '@/modules/users/dto/user.dto';
-import { User } from '@/modules/users/entities/user.entity';
 import { UsersService } from '@/modules/users/users.service';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { v4 as uuid } from 'uuid';
 import { AuthPayload, LoginInput } from './dto/auth.dto';
 
 @Injectable()
@@ -24,7 +10,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(loginInput: LoginInput): Promise<AuthPayload> | null {
+  async validateUser(loginInput: LoginInput) {
     const user = await this.usersService.findByEmail(loginInput.email);
     if (!user) {
       throw new NotFoundException('Khong co use nay');

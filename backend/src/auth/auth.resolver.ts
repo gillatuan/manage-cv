@@ -14,7 +14,7 @@ export class AuthResolver {
   @Public()
   async register(
     @Args('registerUserInput') registerUserInput: RegisterUserInput,
-  ) {
+  ): Promise<RegisterUserResponse> {
     return this.usersService.registerUser(registerUserInput);
   }
 }

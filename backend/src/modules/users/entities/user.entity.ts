@@ -37,5 +37,11 @@ export class User {
   codeId: string;
 
   @Column()
-  codeExpired: Date;
+  codeExpired: string;
+
+  @Column({ default: new Date() })
+  createdAt?: Date;
+
+  @Column({ default: new Date() })
+  updatedAt?: Date;
 }
