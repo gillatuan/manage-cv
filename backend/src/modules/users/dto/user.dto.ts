@@ -14,7 +14,6 @@ export enum RoleEnum {
 }
 
 @ObjectType()
-@ArgsType()
 export class UserType {
   @Field()
   @IsUUID()

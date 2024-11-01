@@ -1,13 +1,16 @@
-import { setHashPassword } from '@/helpers/utils';
+import { LoginInput } from '@/auth/dto/auth.dto';
+import { compare2Password, setHashPassword } from '@/helpers/utils';
 import { User } from '@/modules/users/entities/user.entity';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isUUID } from 'class-validator';
 import dayjs from 'dayjs';
+import { Model } from 'mongoose';
 import ms from 'ms';
 import { MongoRepository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,12 +26,33 @@ import {
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private readonly userModel: MongoRepository<User>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
   ) {}
 
+  async validateUser(email: string, password: string) {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      return null;
+    }
+    const isMatch = compare2Password(password, user.password);
+    if (!isMatch) {
+      return null;
+    }
+
+    return user;
+  }
+
+  async login(loginInput: LoginInput): Promise<User> {
+    const { email, password } = loginInput;
+    const findUser = await this.validateUser(email, password);
+
+    // return the user
+    return findUser;
+  }
+
   isEmailExist = async (email: string) => {
-    const user = await this.userModel.findOneBy({ email });
+    const user = await this.userModel.findOne({ email });
     if (user) return true;
     return false;
   };
@@ -57,10 +81,10 @@ export class UsersService {
       password: hashPassword,
       isActive: false,
       codeId: codeId,
-      codeExpired: ms(dayjs().add(5, 'minutes').toISOString()),
+      role: RoleEnum.Member,
+      codeExpired: dayjs().add(300, 'seconds').toISOString(),
     };
-    const dataObject = this.userModel.create(data);
-    await this.userModel.save(dataObject);
+    await this.userModel.create(data);
 
     delete data.password;
     //trả ra phản hồi
@@ -75,16 +99,16 @@ export class UsersService {
     return this.userModel.find();
   }
 
-  async findOneBy(id: string) {
-    return await this.userModel.findOneBy({ id });
+  async findOne(id: string) {
+    return await this.userModel.findOne({ id });
   }
 
   async findByEmail(email: string) {
-    return await this.userModel.findOneBy({ email });
+    return await this.userModel.findOne({ email });
   }
 
   async update(id: string, updateUserInput: UpdateUserInput) {
-    const checkExistUser = this.userModel.findOneBy({ id });
+    const checkExistUser = this.userModel.findOne({ id });
     if (!checkExistUser) {
       throw new NotFoundException('Khong ton tai use nay');
     }
@@ -99,7 +123,7 @@ export class UsersService {
 
   async remove(id: string) {
     if (isUUID(id)) {
-      const checkUserIsAdmin = await this.userModel.findOneBy({
+      const checkUserIsAdmin = await this.userModel.findOne({
         id,
         role: RoleEnum.Admin,
       });
@@ -118,7 +142,7 @@ export class UsersService {
     const { isActive, s } = filterDto;
 
     if (isActive) {
-      return await this.userModel.findOneBy({ isActive });
+      return await this.userModel.findOne({ isActive });
     }
 
     if (s) {

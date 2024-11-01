@@ -1,47 +1,57 @@
-import { Column, Entity, ObjectIdColumn, PrimaryColumn } from 'typeorm';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { IsMongoId } from 'class-validator';
+import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
 import { RoleEnum } from '../dto/user.dto';
 
-@Entity()
+@ObjectType()
 export class User {
-  @ObjectIdColumn()
-  _id: string;
+  @Field(() => ID) //<- GraphQL
+  @IsMongoId()
+  _id: ObjectId;
 
-  @PrimaryColumn()
+  @Field()
   id: string;
 
-  @Column()
+  @Prop({ required: true, unique: true }) //<- Mongoose
+  @Field()
   email: string;
 
-  @Column()
+  @Prop({ required: true })
   password: string;
 
-  @Column({ nullable: true })
+  @Prop({ nullable: true })
   providerId?: string;
 
-  @Column()
+  @Prop({ required: true })
   phone: string;
 
-  @Column()
+  @Prop({ required: true })
   address: string;
 
-  @Column()
+  @Prop()
   image: string;
 
-  @Column({ default: RoleEnum.Member })
+  @Prop({ required: true, default: RoleEnum.Member })
   role: RoleEnum;
 
-  @Column({ default: false })
+  @Prop({ required: true, default: false })
   isActive: boolean;
 
-  @Column()
+  @Prop()
   codeId: string;
 
-  @Column()
+  @Prop()
   codeExpired: string;
 
-  @Column({ default: new Date() })
+  @Prop({ default: new Date() })
   createdAt?: Date;
 
-  @Column({ default: new Date() })
+  @Prop({ default: new Date() })
   updatedAt?: Date;
 }
+
+export type UserDocument = User & mongoose.Document;
+
+export const UserSchema = SchemaFactory.createForClass(User);

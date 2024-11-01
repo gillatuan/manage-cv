@@ -5,6 +5,11 @@ enum RoleEnum {
   Member
 }
 
+input LoginInput {
+  email: String!
+  password: String!
+}
+
 type User {
   _id: String!
   id: String!
@@ -18,6 +23,11 @@ type User {
   isActive: Boolean
   codeId: String
   codeExpired: Date
+}
+
+type LoginResponse {
+  accessToken: String!
+  user: User!
 }
 
 input RegisterUserInput {
@@ -40,4 +50,5 @@ type RegisterUserResponse {
 
 type Mutation {  
   register(registerUserInput: RegisterUserInput!): RegisterUserResponse
+  login(loginInput: LoginInput!): LoginResponse
 }
