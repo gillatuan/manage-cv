@@ -29,10 +29,10 @@ import { MongooseModule } from '@nestjs/mongoose';
     AuthModule,
   ],
   providers: [
-    {
+    /* {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
-    },
+    }, */
     /* {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
